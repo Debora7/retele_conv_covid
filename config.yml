@@ -1,0 +1,10 @@
+size: [128, 128]
+n1: 64
+conv1: [3, 3]
+n2: 32
+conv2: [3, 3]
+n3: 16
+opt: "SGD" # SGD, RMSprop, Adam
+lr: 0.01
+bs: 15
+n_epochs: 10
