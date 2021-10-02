@@ -1,0 +1,10 @@
+size: [64, 64]
+n1: 16
+conv1: [5, 5]
+n2: 32
+conv2: [5, 5]
+n3: 64
+opt: "Adam" # SGD, RMSprop, Adam
+lr: 0.001
+bs: 10
+n_epochs: 10
