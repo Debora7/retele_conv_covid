@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[8]:
 
 
 import tensorflow as tf
@@ -20,13 +20,26 @@ import matplotlib.pyplot as plt
 config = None
 with open('config.yml') as f:  
     config = yaml.load(f)
-
-data_path = r"C:\Users\Debora\Desktop\AI\Teme_suplimentare\retele_convolutionale\covid_dataset"
+    
+# data_path = r"C:\Users\Debora\Desktop\AI\AI-intro\5_Retele_Neurale\covid_dataset" # Small_dataset
+data_path = r"C:\Users\Debora\Desktop\AI\Teme_suplimentare\retele_convolutionale\covid_dataset" # Big_dataset
 img_size = config['size']
 bs = config['bs']
 
-train_datagen = ImageDataGenerator(rescale=1. / 255)
+train_datagen = ImageDataGenerator( rescale=1./255,
+                                    rotation_range=40,
+                                    width_shift_range=0.2,
+                                    height_shift_range=0.2,
+                                    shear_range=0.2,
+                                    zoom_range=0.2,
+                                    horizontal_flip=True,
+                                    fill_mode='nearest')
+# train_datagen = ImageDataGenerator(rescale=1. / 255)
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
+
+from tensorflow.keras.applications import VGG16
+conv_base = VGG16(weights='imagenet', include_top=False, input_shape=img_shape)
+conv_base.summary()
 
 # Date de training
 train_ds = train_datagen.flow_from_directory(data_path + '/train',
@@ -51,19 +64,26 @@ labels = {0: 'COVID', 1: 'Normal'}
 img_shape = (img_size[0], img_size[1], 3)
 
 # API secvential
+# model = Sequential()
+# model.add(Conv2D(config['n1'], config['conv1'], activation='relu', input_shape=img_shape))
+# model.add(MaxPool2D((2, 2)))
+# model.add(Conv2D(config['n2'], config['conv2'], activation='relu'))
+# model.add(MaxPool2D((2, 2)))
+# model.add(Conv2D(config['n3'], config['conv3'], activation='relu'))
+# model.add(MaxPool2D((2, 2)))
+# model.add(Conv2D(config['n4'], config['conv4'], activation='relu'))
+# model.add(MaxPool2D((2, 2)))
+# model.add(Flatten())
+# model.add(Dense(512, activation='relu'))
+# model.add(Dense(1, activation='sigmoid'))
+# print(model.summary())
 model = Sequential()
-model.add(Conv2D(config['n1'], config['conv1'], activation='relu', input_shape=img_shape))
-model.add(MaxPool2D((2, 2)))
-model.add(Conv2D(config['n2'], config['conv2'], activation='relu'))
-model.add(MaxPool2D((2, 2)))
-model.add(Conv2D(config['n3'], config['conv3'], activation='relu'))
-model.add(MaxPool2D((2, 2)))
-model.add(Conv2D(config['n4'], config['conv4'], activation='relu'))
-model.add(MaxPool2D((2, 2)))
+model.add(conv_base)
 model.add(Flatten())
-model.add(Dense(512, activation='relu'))
+model.add(Dense(256, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
-print(model.summary())
+model.summary()
+conv_base.trainable = False
 
 model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.RMSprop(lr=1e-4), metrics=['accuracy'])
 
