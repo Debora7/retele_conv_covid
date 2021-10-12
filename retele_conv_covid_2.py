@@ -35,6 +35,7 @@ train_datagen = ImageDataGenerator( rescale=1./255,
                                     zoom_range=0.2,
                                     horizontal_flip=True,
                                     fill_mode='nearest')
+
 # train_datagen = ImageDataGenerator(rescale=1. / 255)
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
@@ -80,6 +81,8 @@ model.add(Dense(512, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
 model.add(BatchNormalization())
 print(model.summary())
+
+# Retea preantrenata
 # model = Sequential()
 # model.add(conv_base)
 # model.add(Flatten())
