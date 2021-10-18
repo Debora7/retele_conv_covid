@@ -1,10 +1,16 @@
 size: [64, 64]
-n1: 16
-conv1: [5, 5]
-n2: 32
-conv2: [5, 5]
-n3: 64
+n1: 32
+conv1: [3, 3]
+n2: 64
+conv2: [3, 3]
+n3: 128
+conv3: [3, 3]
+n4: 256
+conv4: [3, 3]
+n5: 512
 opt: "Adam" # SGD, RMSprop, Adam
 lr: 0.001
-bs: 10
-n_epochs: 10
+bs: 20
+n_epochs: 8
+path_big: C:\Users\Debora\Desktop\AI\Teme_suplimentare\retele_convolutionale\covid_dataset
+path_small: C:\Users\Debora\Desktop\AI\AI-intro\5_Retele_Neurale\covid_dataset

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[9]:
+# In[8]:
 
 
 import tensorflow as tf
@@ -22,8 +22,8 @@ config = None
 with open('config.yml') as f:  
     config = yaml.load(f)
     
-data_path = r"C:\Users\Debora\Desktop\AI\AI-intro\5_Retele_Neurale\covid_dataset" # Small_dataset
-# data_path = r"C:\Users\Debora\Desktop\AI\Teme_suplimentare\retele_convolutionale\covid_dataset" # Big_dataset
+data_path = config['path_small'] # Small_dataset
+# data_path = config['path_big'] # Big_dataset
 img_size = config['size']
 bs = config['bs']
 
@@ -61,9 +61,9 @@ print(y_test)
 labels = {0: 'COVID', 1: 'Normal'}
 img_shape = (img_size[0], img_size[1], 3)
 
-# from tensorflow.keras.applications import VGG16
-# conv_base = VGG16(weights='imagenet', include_top=False, input_shape=img_shape)
-# conv_base.summary()
+from tensorflow.keras.applications import VGG16
+conv_base = VGG16(weights='imagenet', include_top=False, input_shape=img_shape)
+conv_base.summary()
 
 # API secvential
 model = Sequential()
@@ -77,25 +77,27 @@ model.add(Conv2D(config['n4'], config['conv4'], activation='relu'))
 model.add(MaxPool2D((2, 2)))
 model.add(Flatten())
 # model.add(Dropout(0.5))
-model.add(Dense(512, activation='relu'))
+model.add(Dense(config['n5'], activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
-model.add(BatchNormalization())
+# model.add(BatchNormalization())
 print(model.summary())
 
 # Retea preantrenata
-# model = Sequential()
-# model.add(conv_base)
-# model.add(Flatten())
-# model.add(Dense(256, activation='relu'))
-# model.add(Dense(1, activation='sigmoid'))
-# model.summary()
-# conv_base.trainable = False
+model = Sequential()
+model.add(conv_base)
+model.add(Flatten())
+model.add(Dense(256, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
+model.summary()
+conv_base.trainable = False
 
 model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.RMSprop(lr=1e-4), metrics=['accuracy'])
 
 nr_ep = config['n_epochs']
-history = model.fit(train_ds, validation_data=valid_ds, validation_steps=50,
-                    epochs=nr_ep)
+size_dataset_valid = len(valid_ds)
+size_dataset_train = len(train_ds)
+
+history = model.fit(train_ds, steps_per_epoch=size_dataset_train, validation_data=valid_ds, validation_steps=size_dataset_train, epochs=nr_ep)
 model.save('covid.h5')
 
 # Functia de plotare a acuratetei si a functiei loss
@@ -129,8 +131,8 @@ def plot_acc_loss(result):
 plot_acc_loss(history)
 
 # Verificarea acuratetei reale
-test_generator = validation_datagen.flow_from_directory(data_path + '/test', target_size=(64, 64), batch_size=10,
+test_generator = validation_datagen.flow_from_directory(data_path + '/test', target_size=(64, 64), batch_size=10, 
                                                         class_mode='binary')
-test_loss, test_acc = model.evaluate_generator(test_generator, steps=50)
+test_loss, test_acc = model.evaluate_generator(test_generator, steps=size_dataset_valid)
 print('test acc:', test_acc*100, '%')
 
