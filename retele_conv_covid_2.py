@@ -17,88 +17,12 @@ from numpy import argmax
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import yaml
 import matplotlib.pyplot as plt
+from tensorflow.keras.applications import VGG16
 
 config = None
 with open('config.yml') as f:  
     config = yaml.load(f)
-    
-data_path = config['path_small'] # Small_dataset
-# data_path = config['path_big'] # Big_dataset
-img_size = config['size']
-bs = config['bs']
 
-train_datagen = ImageDataGenerator( rescale=1./255,
-                                    rotation_range=40,
-                                    width_shift_range=0.2,
-                                    height_shift_range=0.2,
-                                    shear_range=0.2,
-                                    zoom_range=0.2,
-                                    horizontal_flip=True,
-                                    fill_mode='nearest')
-
-# train_datagen = ImageDataGenerator(rescale=1. / 255)
-validation_datagen = ImageDataGenerator(rescale=1. / 255)
-
-# Date de training
-train_ds = train_datagen.flow_from_directory(data_path + '/train',
-                                             target_size=img_size,
-                                             shuffle=True,
-                                             batch_size=bs,
-                                             class_mode="binary")
-
-# Date de validare
-valid_ds = validation_datagen.flow_from_directory(data_path + '/valid',
-                                                  target_size=img_size,
-                                                  shuffle=True,
-                                                  batch_size=bs,
-                                                  class_mode="binary")
-
-# Date de testing
-x_test, y_test = next(train_ds)
-print(x_test.shape)
-print(y_test)
-
-labels = {0: 'COVID', 1: 'Normal'}
-img_shape = (img_size[0], img_size[1], 3)
-
-from tensorflow.keras.applications import VGG16
-conv_base = VGG16(weights='imagenet', include_top=False, input_shape=img_shape)
-conv_base.summary()
-
-# API secvential
-model = Sequential()
-model.add(Conv2D(config['n1'], config['conv1'], activation='relu', input_shape=img_shape))
-model.add(MaxPool2D((2, 2)))
-model.add(Conv2D(config['n2'], config['conv2'], activation='relu'))
-model.add(MaxPool2D((2, 2)))
-model.add(Conv2D(config['n3'], config['conv3'], activation='relu'))
-model.add(MaxPool2D((2, 2)))
-model.add(Conv2D(config['n4'], config['conv4'], activation='relu'))
-model.add(MaxPool2D((2, 2)))
-model.add(Flatten())
-# model.add(Dropout(0.5))
-model.add(Dense(config['n5'], activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
-# model.add(BatchNormalization())
-print(model.summary())
-
-# Retea preantrenata
-model = Sequential()
-model.add(conv_base)
-model.add(Flatten())
-model.add(Dense(256, activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
-model.summary()
-conv_base.trainable = False
-
-model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.RMSprop(lr=1e-4), metrics=['accuracy'])
-
-nr_ep = config['n_epochs']
-size_dataset_valid = len(valid_ds)
-size_dataset_train = len(train_ds)
-
-history = model.fit(train_ds, steps_per_epoch=size_dataset_train, validation_data=valid_ds, validation_steps=size_dataset_train, epochs=nr_ep)
-model.save('covid.h5')
 
 # Functia de plotare a acuratetei si a functiei loss
 def plot_acc_loss(result):
@@ -126,13 +50,87 @@ def plot_acc_loss(result):
     plt.xlabel('Epoch')
 
     plt.show()
+    
 
+# data_path = config['paths']['path_small']  # Small_dataset
+data_path = config['paths']['path_big']  # Big_dataset
+
+
+# train_datagen = ImageDataGenerator()
+train_datagen = ImageDataGenerator(**config['img_gen'])
+validation_datagen = ImageDataGenerator(rescale=1./255)
+
+# Date de training
+train_ds = train_datagen.flow_from_directory(data_path + '/train',
+                                             target_size=config['size'],
+                                             shuffle=True,
+                                             batch_size=config['model']['bs'],
+                                             class_mode="binary")
+
+# Date de validare
+valid_ds = validation_datagen.flow_from_directory(data_path + '/valid',
+                                                  target_size=config['size'],
+                                                  shuffle=True,
+                                                  batch_size=config['model']['bs'],
+                                                  class_mode="binary")
+
+print('train_ds: ', len(train_ds))
+print('valid_ds: ', len(valid_ds))
+
+# Date de testing
+x_test, y_test = next(train_ds)
+print(x_test.shape)
+print(y_test)
+
+labels = {0: 'COVID', 1: 'Normal'}
+img_shape = (config['size'][0], config['size'][1], 3)
+
+
+# Retea preantrenata
+conv_base = VGG16(weights='imagenet', include_top=False, input_shape=img_shape)
+conv_base.summary()
+
+model = Sequential()
+model.add(conv_base)
+model.add(Flatten())
+model.add(Dense(config['model']['n5'], activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
+model.summary()
+conv_base.trainable = False
+
+# API secvential
+# model = Sequential()
+# model.add(Conv2D(config['model']['n1'], config['model']['conv1'], activation='relu', input_shape=img_shape))
+# model.add(MaxPool2D((2, 2)))
+# model.add(Conv2D(config['model']['n2'], config['model']['conv2'], activation='relu'))
+# model.add(MaxPool2D((2, 2)))
+# model.add(Conv2D(config['model']['n3'], config['model']['conv3'], activation='relu'))
+# model.add(MaxPool2D((2, 2)))
+# model.add(Conv2D(config['model']['n4'], config['model']['conv4'], activation='relu'))
+# model.add(MaxPool2D((2, 2)))
+# model.add(Flatten())
+# # model.add(Dropout(0.5))
+# model.add(Dense(config['model']['n5'], activation='relu'))
+# model.add(Dense(1, activation='sigmoid'))
+# # model.add(BatchNormalization())
+# # print(model.summary())
+
+model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.RMSprop(lr=1e-4), metrics=['accuracy'])
+
+history = model.fit(train_ds,
+                    steps_per_epoch=555,
+                    validation_data=valid_ds,
+                    validation_steps=68,
+                    epochs=config['model']['n_epochs'])
+model.save('covid.h5')
 
 plot_acc_loss(history)
 
 # Verificarea acuratetei reale
-test_generator = validation_datagen.flow_from_directory(data_path + '/test', target_size=(64, 64), batch_size=10, 
+test_generator = validation_datagen.flow_from_directory(data_path + '/test',
+                                                        target_size=(64, 64),
+                                                        batch_size=10,
                                                         class_mode='binary')
-test_loss, test_acc = model.evaluate_generator(test_generator, steps=size_dataset_valid)
+test_loss, test_acc = model.evaluate(test_generator,
+                                     steps=68)
 print('test acc:', test_acc*100, '%')
-
