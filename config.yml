@@ -1,4 +1,4 @@
-size: [128, 128]
+size: [32, 32]
 
 model:
   n1: 32
@@ -26,6 +26,6 @@ img_gen:
   height_shift_range: 0.2
   shear_range: 0.2
   zoom_range: 0.2
-  horizontal_flip: False
-  brightness_range: [10, 10]
+#  horizontal_flip: False
+#  brightness_range: [10, 10]
 

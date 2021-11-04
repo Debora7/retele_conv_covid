@@ -52,11 +52,11 @@ def plot_acc_loss(result):
     plt.show()
     
 
-# data_path = config['paths']['path_small']  # Small_dataset
-data_path = config['paths']['path_big']  # Big_dataset
+data_path = config['paths']['path_small']  # Small_dataset
+# data_path = config['paths']['path_big']  # Big_dataset
 
 
-# train_datagen = ImageDataGenerator()
+# train_datagen = ImageDataGenerator(rescale=1./255)
 train_datagen = ImageDataGenerator(**config['img_gen'])
 validation_datagen = ImageDataGenerator(rescale=1./255)
 
@@ -100,7 +100,10 @@ conv_base.trainable = False
 
 # API secvential
 # model = Sequential()
-# model.add(Conv2D(config['model']['n1'], config['model']['conv1'], activation='relu', input_shape=img_shape))
+# model.add(Conv2D(config['model']['n1'],
+#                  config['model']['conv1'],
+#                  activation='relu',
+#                  input_shape=img_shape))
 # model.add(MaxPool2D((2, 2)))
 # model.add(Conv2D(config['model']['n2'], config['model']['conv2'], activation='relu'))
 # model.add(MaxPool2D((2, 2)))
@@ -115,12 +118,14 @@ conv_base.trainable = False
 # # model.add(BatchNormalization())
 # # print(model.summary())
 
-model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.RMSprop(lr=1e-4), metrics=['accuracy'])
+model.compile(loss='binary_crossentropy',
+              optimizer=tf.keras.optimizers.RMSprop(lr=1e-4),
+              metrics=['accuracy'])
 
 history = model.fit(train_ds,
-                    steps_per_epoch=555,
+                    steps_per_epoch=len(train_ds),
                     validation_data=valid_ds,
-                    validation_steps=68,
+                    validation_steps=len(valid_ds),
                     epochs=config['model']['n_epochs'])
 model.save('covid.h5')
 
@@ -131,6 +136,6 @@ test_generator = validation_datagen.flow_from_directory(data_path + '/test',
                                                         target_size=(64, 64),
                                                         batch_size=10,
                                                         class_mode='binary')
-test_loss, test_acc = model.evaluate(test_generator,
-                                     steps=68)
+test_loss, test_acc = model.evaluate_generator(test_generator,
+                                               steps=68)
 print('test acc:', test_acc*100, '%')
