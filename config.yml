@@ -1,4 +1,4 @@
-size: [32, 32]
+size: [128, 128]
 
 model:
   n1: 32
@@ -11,21 +11,22 @@ model:
   conv4: [3, 3]
   n5: 512
   opt: "Adam" # SGD, RMSprop, Adam
-  lr: 0.001
+  lr: 0.0001
   bs: 10
-  n_epochs: 10
+  n_epochs: 16
 
 paths:
   path_big: C:\Users\Debora\Desktop\AI\Teme_suplimentare\retele_convolutionale\covid_dataset
   path_small: C:\Users\Debora\Desktop\AI\AI-intro\5_Retele_Neurale\covid_dataset
 
 img_gen:
-  rescale: 0.0039
+  rescale: 0.3
   rotation_range: 40
   width_shift_range: 0.2
   height_shift_range: 0.2
   shear_range: 0.2
   zoom_range: 0.2
-#  horizontal_flip: False
-#  brightness_range: [10, 10]
-
+  horizontal_flip: False
+  brightness_range: [10, 10]
+  zca_epsilon: 1.00E-0.6
+  zca_whitening: True

@@ -52,8 +52,8 @@ def plot_acc_loss(result):
     plt.show()
     
 
-data_path = config['paths']['path_small']  # Small_dataset
-# data_path = config['paths']['path_big']  # Big_dataset
+# data_path = config['paths']['path_small']  # Small_dataset
+data_path = config['paths']['path_big']  # Big_dataset
 
 
 # train_datagen = ImageDataGenerator(rescale=1./255)
@@ -93,9 +93,11 @@ conv_base.summary()
 model = Sequential()
 model.add(conv_base)
 model.add(Flatten())
+model.add(Dropout(0.5))
 model.add(Dense(config['model']['n5'], activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
-model.summary()
+model.add(BatchNormalization())
+# model.summary()
 conv_base.trainable = False
 
 # API secvential
@@ -110,7 +112,7 @@ conv_base.trainable = False
 # model.add(Conv2D(config['model']['n3'], config['model']['conv3'], activation='relu'))
 # model.add(MaxPool2D((2, 2)))
 # model.add(Conv2D(config['model']['n4'], config['model']['conv4'], activation='relu'))
-# model.add(MaxPool2D((2, 2)))
+# model.add(MaxPool2D((2, 2))10
 # model.add(Flatten())
 # # model.add(Dropout(0.5))
 # model.add(Dense(config['model']['n5'], activation='relu'))
@@ -133,7 +135,7 @@ plot_acc_loss(history)
 
 # Verificarea acuratetei reale
 test_generator = validation_datagen.flow_from_directory(data_path + '/test',
-                                                        target_size=(64, 64),
+                                                        target_size=config['size'],
                                                         batch_size=10,
                                                         class_mode='binary')
 test_loss, test_acc = model.evaluate_generator(test_generator,
