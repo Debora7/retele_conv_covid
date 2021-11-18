@@ -24,6 +24,7 @@ config = None
 with open('config.yml') as f:  
     config = yaml.load(f)
 
+
 # data_path = config['paths']['path_small']  # Small_dataset
 data_path = config['paths']['path_big']  # Big_dataset
 
